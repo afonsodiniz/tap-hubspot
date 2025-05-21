@@ -1344,41 +1344,16 @@ class ProductStream(HubspotStream):
         return "https://api.hubapi.com/crm/v3"
 
 
-class TicketStream(HubspotStream):
+class TicketStream(DynamicIncrementalHubspotStream):
     """https://developers.hubspot.com/docs/api/crm/tickets."""
-
-    """
-    name: stream name
-    path: path which will be added to api url in client.py
-    schema: instream schema
-    primary_keys = primary keys for the table
-    replication_key = datetime keys for replication
-    records_jsonpath = json response body
-    """
 
     name = "tickets"
     path = "/objects/tickets"
+    incremental_path = "/objects/tickets/search"  
     primary_keys = ("id",)
-    records_jsonpath = "$[results][*]"  # Or override `parse_response`.
-
-    schema = PropertiesList(
-        Property("id", StringType),
-        Property(
-            "properties",
-            ObjectType(
-                Property("createdate", StringType),
-                Property("hs_lastmodifieddate", StringType),
-                Property("hs_pipeline", StringType),
-                Property("hs_pipeline_stage", StringType),
-                Property("hs_ticket_priority", StringType),
-                Property("hubspot_owner_id", StringType),
-                Property("subject", StringType),
-            ),
-        ),
-        Property("createdAt", StringType),
-        Property("updatedAt", StringType),
-        Property("archived", BooleanType),
-    ).to_dict()
+    replication_key = "hs_lastmodifieddate"
+    replication_method = "INCREMENTAL"
+    records_jsonpath = "$[results][*]"
 
     @property
     def url_base(self) -> str:
