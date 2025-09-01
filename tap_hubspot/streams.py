@@ -9,6 +9,7 @@ from singer_sdk import typing as th  # JSON Schema typing helpers
 from tap_hubspot.client import (
     DynamicIncrementalHubspotStream,
     HubspotStream,
+    DynamicHubspotStream,
 )
 
 if t.TYPE_CHECKING:
@@ -1232,7 +1233,7 @@ class DealStream(DynamicIncrementalHubspotStream):
         return "https://api.hubapi.com/crm/v3"
 
 
-class FeedbackSubmissionsStream(HubspotStream):
+class FeedbackSubmissionsStream(DynamicHubspotStream):
     """https://developers.hubspot.com/docs/api/crm/feedback-submissions."""
 
     """
@@ -1248,26 +1249,6 @@ class FeedbackSubmissionsStream(HubspotStream):
     path = "/objects/feedback_submissions"
     primary_keys = ("id",)
     records_jsonpath = "$[results][*]"  # Or override `parse_response`.
-
-    schema = PropertiesList(
-        Property("id", StringType),
-        Property(
-            "properties",
-            ObjectType(
-                Property("city", StringType),
-                Property("createdDate", StringType),
-                Property("domain", StringType),
-                Property("hs_lastmodifieddate", StringType),
-                Property("industry", StringType),
-                Property("name", StringType),
-                Property("phone", StringType),
-                Property("state", StringType),
-            ),
-        ),
-        Property("createdAt", StringType),
-        Property("updatedAt", StringType),
-        Property("archived", BooleanType),
-    ).to_dict()
 
     @property
     def url_base(self) -> str:
