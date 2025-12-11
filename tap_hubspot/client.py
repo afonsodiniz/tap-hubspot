@@ -167,7 +167,15 @@ class DynamicHubspotStream(HubspotStream):
         )
         resp.raise_for_status()
         results = resp.json().get("results", [])
-        return {prop["name"]: prop["type"] for prop in results}
+        all_props = {prop["name"]: prop["type"] for prop in results}
+        
+        # Filter properties if stream-specific config is provided
+        stream_properties = self.config.get("stream_properties", {})
+        if self.name in stream_properties:
+            allowed_props = stream_properties[self.name]
+            return {k: v for k, v in all_props.items() if k in allowed_props}
+        
+        return all_props
 
     def get_url_params(
         self,
